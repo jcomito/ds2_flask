@@ -24,8 +24,12 @@ def ingest():
     logging.debug("Received content encoding: %s", request.content_encoding)
 
     try:
-        # Handle request with no Content-Type or Content-Encoding headers
-        if request.content_length > 0:
+        # Handle gzip-encoded data
+        if request.content_encoding == 'gzip':
+            compressed_data = request.get_data()
+            file_content = gzip.GzipFile(fileobj=io.BytesIO(compressed_data)).read().decode('utf-8')
+        elif request.content_length > 0:
+            # Handle uncompressed data
             file_content = request.data.decode('utf-8')
         else:
             return jsonify({"error": "No content in request"}), 400
